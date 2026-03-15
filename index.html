@@ -209,7 +209,7 @@
     <!-- Hero -->
     <header id="home" class="relative min-h-[100vh] flex flex-col justify-center overflow-hidden pt-32 pb-20">
         <div class="absolute inset-0 grid-bg pointer-events-none z-0"></div>
-        <div class="z-10 px-6 md:px-12 flex flex-col items-center text-center pointer-events-none">
+        <div class="z-10 px-6 md:px-12 flex flex-col items-center text-center">
             <p class="font-body text-volt font-bold tracking-[0.3em] uppercase mb-4 text-[10px] md:text-sm reveal-up">Information Technology Undergraduate</p>
             <h1 class="font-heading text-[11vw] font-bold text-white leading-[0.9] reveal-up max-w-[100vw] whitespace-nowrap overflow-visible">
                 RITHIK <span class="text-transparent" style="-webkit-text-stroke: 1.5px #333;">U R</span>
@@ -337,7 +337,6 @@
     <footer id="contact" class="py-16 md:py-24 px-6 md:px-12 relative overflow-hidden mt-12 mb-20 pointer-events-none">
         <div class="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center md:items-end relative z-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-16 shadow-2xl glass-sheen">
             
-            <!-- Watermark text wrapped in overflow-hidden to prevent mobile wiggle -->
             <div class="absolute inset-0 overflow-hidden rounded-[3rem] pointer-events-none">
                 <div id="parallax-name" class="absolute right-0 bottom-[-5%] font-heading text-[20vw] text-white/5 pointer-events-none select-none z-0 tracking-tighter leading-none whitespace-nowrap origin-bottom-right">
                     RITHIK
@@ -353,7 +352,6 @@
             </div>
 
             <div class="relative z-10 w-full overflow-visible">
-                <!-- STACKED MAGNETIC TEXT -->
                 <h2 id="magnetic-text" class="font-heading text-[18vw] sm:text-[14vw] md:text-[8.5rem] lg:text-[10rem] xl:text-[11rem] leading-[0.85] mb-8 text-white uppercase whitespace-nowrap flex flex-col items-start w-full pointer-events-none select-none">
                     <div class="flex flex-nowrap shrink-0">
                         <span class="inline-block">L</span><span class="inline-block">E</span><span class="inline-block">T</span><span class="inline-block">'</span><span class="inline-block">S</span>
@@ -419,6 +417,7 @@
                         scrollOsc.type = 'triangle';
                         scrollOsc.frequency.setValueAtTime(40, audioCtx.currentTime); 
                         scrollGain.gain.setValueAtTime(0, audioCtx.currentTime); 
+                        
                         scrollOsc.connect(scrollGain);
                         scrollGain.connect(audioCtx.destination);
                         scrollOsc.start();
@@ -560,7 +559,7 @@
             });
         });
 
-        // Click Ripple & Wire Power Surge
+        // Click Ripple & Wire Power Surge (With Electric Surge Haptics)
         window.addEventListener('click', (e) => {
             if(e.target.closest('button, a, input, .mobile-link')) return; 
             const ripple = document.createElement('div');
@@ -573,6 +572,10 @@
             const w2 = document.getElementById('wire-pulse-2');
             const w3 = document.getElementById('wire-pulse-3');
             if(w1 && w2 && w3) {
+                // FINELY TUNED ELECTRIC SURGE HAPTICS
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate([5, 20, 5, 20, 5]); 
+                }
                 gsap.fromTo([w1, w2, w3], { strokeDashoffset: 1100, strokeWidth: 8, strokeOpacity: 1 }, { strokeDashoffset: -1100, strokeWidth: 2, strokeOpacity: 0.2, duration: 3.5, ease: "power2.out" });
             }
         });
@@ -651,8 +654,10 @@
             const txt = document.getElementById('email-text');
             if(txt) { const orig = txt.textContent; txt.textContent = "COPIED!"; triggerHaptic(50); setTimeout(() => { txt.textContent = orig; }, 2000); }
         }
-        document.getElementById('copy-email-trigger').onclick = copyToClipboard;
-        document.getElementById('copy-email-btn').onclick = (e) => { e.preventDefault(); copyToClipboard(); };
+        const copyTrig = document.getElementById('copy-email-trigger');
+        const copyBtn = document.getElementById('copy-email-btn');
+        if(copyTrig) copyTrig.onclick = copyToClipboard;
+        if(copyBtn) copyBtn.onclick = (e) => { e.preventDefault(); copyToClipboard(); };
 
         // Terminal Simulator
         const terminalOutput = ["> system.init", "> academy.foundation... OK", "> IT_UNDERGRAD... ACTIVE", "> full_stack... DETECTED"];
