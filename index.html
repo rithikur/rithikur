@@ -49,7 +49,9 @@
         .lenis.lenis-stopped { overflow: hidden; }
         .lenis.lenis-scrolling iframe { pointer-events: none; }
 
+        /* CALIBRATED SCROLL MARGIN for proper landing */
         section { scroll-margin-top: 100px; }
+        @media (min-width: 768px) { section { scroll-margin-top: 120px; } }
 
         .noise::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -57,8 +59,17 @@
             opacity: 0.04; pointer-events: none; z-index: 150;
         }
 
-        /* DEBUG MODE */
-        body.debug-mode * { border: 1px solid rgba(204, 255, 0, 0.15) !important; background-image: none !important; }
+        /* MOBILE MENU LOGIC */
+        #mobile-menu { 
+            transform: translateY(-100%); 
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        #mobile-menu.open { 
+            transform: translateY(0); 
+        }
+
+        /* DEBUG MODE / X-RAY LENS */
+        body.debug-mode * { border: 1px solid rgba(204, 255, 0, 0.1) !important; }
         body.debug-mode .cursor-ring {
             width: 250px !important; 
             height: 250px !important;
@@ -67,11 +78,6 @@
             border: 1px dashed #ccff00 !important;
             z-index: 10000 !important;
         }
-        body.debug-mode .cursor-ring::after {
-            content: "+"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #ccff00; font-family: monospace; font-size: 24px; pointer-events: none;
-        }
-        body.debug-mode .cursor-dot { display: none !important; }
 
         /* Grid */
         :root { --mouse-x: 50%; --mouse-y: 50%; }
@@ -86,7 +92,7 @@
         .cursor-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid rgba(204, 255, 0, 0.5); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background 0.2s; }
         .cursor-ring.active { width: 65px !important; height: 65px !important; background: rgba(204, 255, 0, 0.05); border-color: #ccff00; }
 
-        /* Marquee */
+        /* Marquee Styles */
         .marquee-content, .marquee-content-reverse { display: flex; flex-wrap: nowrap; will-change: transform; }
         .marquee-content span, .marquee-content-reverse span { white-space: nowrap; flex-shrink: 0; }
         
@@ -98,15 +104,8 @@
         @keyframes pulse-core { 0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px #ccff00); } 50% { opacity: 0.7; filter: drop-shadow(0 0 8px #ccff00); } }
 
         /* Sidebar Progress */
-        .progress-indicator {
-            position: fixed; left: 20px; top: 50%; transform: translateY(-50%); z-index: 100; display: none;
-        }
+        .progress-indicator { position: fixed; left: 20px; top: 50%; transform: translateY(-50%); z-index: 100; display: none; }
         @media (min-width: 1024px) { .progress-indicator { display: block; } }
-
-        /* Responsive Text Utility */
-        .fluid-heading {
-            font-size: clamp(3rem, 12vw, 9rem);
-        }
 
         /* CMD Palette Custom Scrollbar */
         #cmd-list::-webkit-scrollbar { width: 4px; }
@@ -129,9 +128,7 @@
                 <input type="text" id="cmd-input" placeholder="Type a command or search (e.g., 'Contact')" class="w-full bg-transparent text-white outline-none font-mono text-sm md:text-base placeholder:text-gray-600" autocomplete="off">
                 <div class="text-[10px] text-gray-500 border border-gray-700 rounded px-2 py-0.5 whitespace-nowrap">ESC</div>
             </div>
-            <div id="cmd-list" class="p-2 max-h-[50vh] overflow-y-auto font-mono text-xs md:text-sm text-gray-300">
-                <!-- Commands populated by JS -->
-            </div>
+            <div id="cmd-list" class="p-2 max-h-[50vh] overflow-y-auto font-mono text-xs md:text-sm text-gray-300"></div>
         </div>
     </div>
 
@@ -154,8 +151,7 @@
         <div class="flex gap-6 items-center">
             <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> SYSTEM: STABLE</div>
             <div class="flex items-center gap-2"><i data-lucide="folder" class="w-3 h-3"></i> <span id="os-path">ROOT/HOME</span></div>
-            <!-- AUDIO TOGGLE -->
-            <button id="audio-toggle" class="flex items-center gap-2 hover:text-white transition-colors haptic-target outline-none pointer-events-auto">
+            <button id="audio-toggle" class="flex items-center gap-2 hover:text-white transition-colors haptic-target outline-none">
                 <span class="w-1.5 h-1.5 bg-gray-600 rounded-full" id="audio-indicator"></span> SOUND: OFF
             </button>
         </div>
@@ -194,21 +190,20 @@
             <a href="#stack" class="nav-link hover:text-volt transition-colors haptic-target">Stack</a>
             <a href="#vibe" class="nav-link hover:text-volt transition-colors haptic-target">Vibe</a>
             <a href="#contact" class="nav-link hover:text-volt transition-colors haptic-target">Contact</a>
-            <!-- X-RAY TOGGLE -->
             <button id="debug-toggle" class="bg-white/5 border border-white/10 px-3 py-1.5 rounded flex items-center gap-2 hover:bg-volt hover:text-dark transition-all haptic-target outline-none">
                 <i data-lucide="scan-line" class="w-3 h-3"></i> LENS
             </button>
         </div>
-        <button id="menu-toggle" class="md:hidden text-white haptic-target"><i data-lucide="menu"></i></button>
+        <button id="menu-toggle" class="md:hidden text-white haptic-target p-2 -mr-2"><i data-lucide="menu"></i></button>
     </nav>
 
     <!-- Mobile Menu Overlay -->
-    <div id="mobile-menu" class="fixed inset-0 z-[90] bg-dark flex flex-col items-center justify-center gap-8 md:hidden">
+    <div id="mobile-menu" class="fixed inset-0 z-[130] bg-dark flex flex-col items-center justify-center gap-8 md:hidden">
         <a href="#about" class="mobile-link font-heading text-4xl font-bold hover:text-volt">About</a>
         <a href="#stack" class="mobile-link font-heading text-4xl font-bold hover:text-volt">Stack</a>
         <a href="#vibe" class="mobile-link font-heading text-4xl font-bold hover:text-volt">Vibe</a>
         <a href="#contact" class="mobile-link font-heading text-4xl font-bold hover:text-volt">Contact</a>
-        <button id="menu-close" class="mt-8 text-volt uppercase tracking-widest font-bold text-xs haptic-target">Close</button>
+        <button id="menu-close" class="mt-8 text-volt uppercase tracking-widest font-bold text-xs haptic-target p-4">Close</button>
     </div>
 
     <!-- Hero -->
@@ -225,36 +220,28 @@
         </div>
     </header>
 
-    <!-- KINETIC TRACKS (Updated with Quadruple buffering for seamless loop) -->
-    <div id="kinetic-section" class="relative z-20 py-12 overflow-hidden marquee-wrapper pointer-events-auto">
+    <!-- KINETIC TRACKS -->
+    <div id="kinetic-section" class="relative z-20 py-12 overflow-hidden marquee-wrapper">
         <div class="marquee-track bg-volt text-dark py-4 rotate-[-1.5deg] scale-105 relative z-10 shadow-xl overflow-hidden">
             <div id="marquee-l" class="marquee-content font-heading text-2xl md:text-4xl font-bold tracking-widest flex items-center">
-                <!-- Content Set 1 -->
                 <span>FULL STACK DEV</span><span class="mx-6">⚡</span><span>PYTHON & C</span><span class="mx-6">⚡</span><span>BLENDER 3D</span><span class="mx-6">⚡</span><span>JAVASCRIPT</span><span class="mx-6">⚡</span>
-                <!-- Content Set 2 -->
                 <span>FULL STACK DEV</span><span class="mx-6">⚡</span><span>PYTHON & C</span><span class="mx-6">⚡</span><span>BLENDER 3D</span><span class="mx-6">⚡</span><span>JAVASCRIPT</span><span class="mx-6">⚡</span>
-                <!-- Content Set 3 -->
                 <span>FULL STACK DEV</span><span class="mx-6">⚡</span><span>PYTHON & C</span><span class="mx-6">⚡</span><span>BLENDER 3D</span><span class="mx-6">⚡</span><span>JAVASCRIPT</span><span class="mx-6">⚡</span>
-                <!-- Content Set 4 (Added for maximum loop stability) -->
                 <span>FULL STACK DEV</span><span class="mx-6">⚡</span><span>PYTHON & C</span><span class="mx-6">⚡</span><span>BLENDER 3D</span><span class="mx-6">⚡</span><span>JAVASCRIPT</span><span class="mx-6">⚡</span>
             </div>
         </div>
         <div class="marquee-track border-y border-white/10 py-3 rotate-[1.5deg] scale-105 -mt-6 bg-dark/80 backdrop-blur-sm overflow-hidden">
             <div id="marquee-r" class="marquee-content-reverse font-heading text-xl md:text-2xl font-bold tracking-[0.3em] flex items-center opacity-30">
-                <!-- Content Set 1 -->
                 <span class="text-transparent" style="-webkit-text-stroke: 1px white;">ALGORITHMIC THINKING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">PRACTICAL LEARNING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">UI ARCHITECTURE</span><span class="mx-8">/</span>
-                <!-- Content Set 2 -->
                 <span class="text-transparent" style="-webkit-text-stroke: 1px white;">ALGORITHMIC THINKING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">PRACTICAL LEARNING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">UI ARCHITECTURE</span><span class="mx-8">/</span>
-                <!-- Content Set 3 -->
                 <span class="text-transparent" style="-webkit-text-stroke: 1px white;">ALGORITHMIC THINKING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">PRACTICAL LEARNING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">UI ARCHITECTURE</span><span class="mx-8">/</span>
-                <!-- Content Set 4 -->
                 <span class="text-transparent" style="-webkit-text-stroke: 1px white;">ALGORITHMIC THINKING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">PRACTICAL LEARNING</span><span class="mx-8">/</span><span class="text-transparent" style="-webkit-text-stroke: 1px white;">UI ARCHITECTURE</span><span class="mx-8">/</span>
             </div>
         </div>
     </div>
 
-    <!-- Education Section -->
-    <section id="about" class="py-16 md:py-24 px-6 md:px-12 max-w-[1400px] mx-auto relative z-10 pointer-events-none">
+    <!-- About Section -->
+    <section id="about" class="py-16 md:py-24 px-6 md:px-12 max-w-[1400px] mx-auto relative z-10">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-end">
             <div class="lg:col-span-5 space-y-12">
                 <div class="reveal-fade">
@@ -266,7 +253,7 @@
                     <div><p class="text-gray-500 text-sm font-bold uppercase mb-1">Graduation</p><p class="font-heading text-6xl md:text-8xl text-white">2029</p></div>
                 </div>
             </div>
-            <div class="lg:col-span-7 space-y-6 pointer-events-auto">
+            <div class="lg:col-span-7 space-y-6">
                 <div class="bg-[#0a0a0a] rounded-xl border border-border overflow-hidden shadow-2xl reveal-fade tilt-card haptic-target">
                     <div class="bg-panel px-4 py-2 border-b border-border flex items-center gap-2">
                         <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-500/40"></div><div class="w-2.5 h-2.5 rounded-full bg-yellow-500/40"></div><div class="w-2.5 h-2.5 rounded-full bg-green-500/40"></div></div>
@@ -282,8 +269,8 @@
     </section>
 
     <!-- Tech Stack Section -->
-    <section id="stack" class="py-16 md:py-24 bg-panel border-y border-border relative overflow-hidden pointer-events-none">
-        <div class="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10 pointer-events-auto">
+    <section id="stack" class="py-16 md:py-24 bg-panel border-y border-border relative overflow-hidden">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
             <h2 class="font-heading text-6xl md:text-8xl mb-16 glitch" data-text="TECH STACK">TECH STACK</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="group bg-dark border border-border p-8 hover:border-volt transition-all reveal-fade relative overflow-hidden tilt-card haptic-target">
@@ -314,13 +301,13 @@
     </section>
 
     <!-- VIBE / WHAT I LIKE SECTION -->
-    <section id="vibe" class="py-16 md:py-24 px-6 md:px-12 max-w-[1400px] mx-auto relative z-10 pointer-events-none">
-        <div class="reveal-fade mb-16 pointer-events-auto">
+    <section id="vibe" class="py-16 md:py-24 px-6 md:px-12 max-w-[1400px] mx-auto relative z-10">
+        <div class="reveal-fade mb-16">
             <p class="text-volt font-bold tracking-widest uppercase text-xs mb-2">Lifestyle</p>
             <h2 class="font-heading text-6xl md:text-8xl">WHAT I LIKE</h2>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pointer-events-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-panel p-10 md:p-12 border border-border rounded-[2rem] hover:border-volt group overflow-hidden flex flex-col justify-end min-h-[350px] relative tilt-card haptic-target md:row-span-2">
                 <i data-lucide="wrench" class="absolute -right-10 -top-10 w-64 h-64 text-white/5 group-hover:text-volt/10 transition-colors"></i>
                 <div class="w-16 h-16 bg-volt text-dark rounded-full flex items-center justify-center mb-8"><i data-lucide="wrench"></i></div>
@@ -348,14 +335,13 @@
 
     <!-- Footer -->
     <footer id="contact" class="py-16 md:py-24 px-6 md:px-12 relative overflow-hidden mt-12 mb-20 pointer-events-none">
-        <div id="footer-orb-1" class="absolute w-[40vw] h-[40vw] bg-volt/10 rounded-full blur-[100px] top-[-10%] left-[-10%] pointer-events-none"></div>
-        <div id="mouse-orb" class="absolute w-[20vw] h-[20vw] bg-volt/5 rounded-full blur-[60px] opacity-0 transition-opacity pointer-events-none"></div>
-
         <div class="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center md:items-end relative z-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 md:p-16 shadow-2xl glass-sheen">
             
-            <!-- BACKGROUND PARALLAX WATERMARK -->
-            <div id="parallax-name" class="absolute right-0 bottom-[-5%] font-heading text-[20vw] text-white/5 pointer-events-none select-none z-0 tracking-tighter leading-none whitespace-nowrap origin-bottom-right">
-                RITHIK
+            <!-- Watermark text wrapped in overflow-hidden to prevent mobile wiggle -->
+            <div class="absolute inset-0 overflow-hidden rounded-[3rem] pointer-events-none">
+                <div id="parallax-name" class="absolute right-0 bottom-[-5%] font-heading text-[20vw] text-white/5 pointer-events-none select-none z-0 tracking-tighter leading-none whitespace-nowrap origin-bottom-right">
+                    RITHIK
+                </div>
             </div>
             
             <div class="absolute top-8 right-8 md:top-14 md:right-14 flex flex-col items-end z-20 pointer-events-auto">
@@ -363,7 +349,7 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-volt shadow-[0_0_8px_#ccff00]"></span>
                     <span class="text-[9px] font-bold uppercase tracking-widest text-volt">Available for Work</span>
                 </div>
-                <p class="font-mono text-lg text-white/80 tracking-widest" id="live-time">00:00:00</p>
+                <p class="font-mono text-lg text-white/80 tracking-widest" id="live-time-footer">00:00:00</p>
             </div>
 
             <div class="relative z-10 w-full overflow-visible">
@@ -376,7 +362,6 @@
                         <span class="inline-block">B</span><span class="inline-block">U</span><span class="inline-block">I</span><span class="inline-block">L</span><span class="inline-block">D</span><span class="inline-block">.</span>
                     </div>
                 </h2>
-                <!-- BUTTONS Z-INDEX ELEVATED -->
                 <div class="flex gap-4 relative z-20 pointer-events-auto">
                     <a href="mailto:rithikur@gmail.com" id="copy-email-btn" class="social-icon group w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-dark transition-all duration-500 haptic-target"><i data-lucide="mail" class="w-5 h-5"></i></a>
                     <a href="https://www.linkedin.com/in/rithik-u-r/" target="_blank" class="social-icon group w-12 h-12 bg-white/5 border border-white/10 rounded-full flex items-center justify-center hover:bg-white hover:text-dark transition-all duration-500 haptic-target"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
@@ -384,7 +369,6 @@
                 </div>
             </div>
 
-            <!-- RIGHT CONTACT DETAILS ELEVATED TO AVOID OVERLAP -->
             <div class="md:text-right font-bold tracking-wider relative z-20 text-white mt-12 md:mt-0 pointer-events-auto">
                 <div id="copy-email-trigger" class="inline-block group cursor-pointer haptic-target mb-1">
                     <p id="email-text" class="text-xl md:text-3xl font-heading group-hover:text-volt transition-colors lowercase">rithikur@gmail.com</p>
@@ -399,19 +383,15 @@
     <script>
         lucide.createIcons();
 
-        // --- 1. GLOBAL UTILITIES ---
+        // 1. GLOBAL UTILITIES
         function triggerHaptic(duration = 15) {
             if (window.navigator && window.navigator.vibrate) { 
                 try { window.navigator.vibrate(duration); } catch(e) {} 
             }
         }
 
-        // --- 2. LENIS SMOOTH SCROLL INIT ---
-        const lenis = new Lenis({ 
-            duration: 1.2, 
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
-            smooth: true 
-        });
+        // 2. LENIS SMOOTH SCROLL INIT
+        const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smooth: true });
         lenis.stop(); 
 
         function raf(time) {
@@ -419,14 +399,12 @@
             requestAnimationFrame(raf);
         }
         requestAnimationFrame(raf);
-        
         gsap.ticker.add((time) => { lenis.raf(time * 1000) });
         lenis.on('scroll', ScrollTrigger.update);
 
         // --- 3. DYNAMIC AUDIO ENGINE ---
         let audioCtx, scrollOsc, scrollGain;
         let soundEnabled = false;
-        
         const audioBtn = document.getElementById('audio-toggle');
         const audioIndicator = document.getElementById('audio-indicator');
         
@@ -441,17 +419,14 @@
                         scrollOsc.type = 'triangle';
                         scrollOsc.frequency.setValueAtTime(40, audioCtx.currentTime); 
                         scrollGain.gain.setValueAtTime(0, audioCtx.currentTime); 
-                        
                         scrollOsc.connect(scrollGain);
                         scrollGain.connect(audioCtx.destination);
                         scrollOsc.start();
-                        
                         soundEnabled = true;
-                        if(audioIndicator) audioIndicator.className = 'w-1.5 h-1.5 bg-volt rounded-full animate-pulse shadow-[0_0_8px_#ccff00]';
-                        audioBtn.classList.add('text-volt');
+                        if(audioIndicator) audioIndicator.className = 'w-1.5 h-1.5 bg-volt rounded-full animate-pulse';
                         audioBtn.innerHTML = (audioIndicator ? audioIndicator.outerHTML : '') + ' SOUND: ON';
                         playHoverSound(600); 
-                    } catch(e) { console.error("Audio API blocked:", e); }
+                    } catch(e) {}
                 } else {
                     if(scrollOsc) scrollOsc.stop();
                     if(audioCtx) audioCtx.close();
@@ -471,29 +446,18 @@
                 const gain = audioCtx.createGain();
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(freq/2, audioCtx.currentTime + 0.1);
                 gain.gain.setValueAtTime(0.01, audioCtx.currentTime); 
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } catch(e) {}
         }
 
         // --- 4. BIOS BOOT PRELOADER ---
         const bootScreen = document.getElementById('boot-screen');
         const bootLog = document.getElementById('boot-log');
-        const bootMessages = [
-            "Initializing Hardware Interface...",
-            "CPU: Rithik_Architecture [v2.6]... OK",
-            "Checking Memory Allocation... 64000K OK",
-            "Loading Base UI Matrix...",
-            "Injecting CSS Assets... DONE",
-            "Connecting Web Audio API... STANDBY",
-            "Starting Lenis Scroll Engine...",
-            "[SYSTEM READY] Booting in 3... 2... 1..."
-        ];
+        const bootMessages = ["Initializing Hardware Interface...", "CPU: Rithik_Architecture... OK", "Checking Memory... OK", "Injecting CSS Assets... DONE", "Starting Lenis Engine...", "[SYSTEM READY]"];
         let bootIndex = 0;
 
         function bootStep() {
@@ -506,17 +470,11 @@
                 setTimeout(bootStep, Math.random() * 150 + 50); 
             } else {
                 setTimeout(() => {
-                    gsap.to(bootScreen, { 
-                        yPercent: -100, 
-                        opacity: 0,
-                        duration: 0.8, 
-                        ease: "power4.inOut", 
-                        onComplete: () => {
-                            bootScreen.remove();
-                            lenis.start(); 
-                            gsap.from(".reveal-up", { y: 60, opacity: 0, duration: 1.2, stagger: 0.1, ease: "power4.out" });
-                        }
-                    });
+                    gsap.to(bootScreen, { yPercent: -100, opacity: 0, duration: 0.8, ease: "power4.inOut", onComplete: () => {
+                        bootScreen.remove();
+                        lenis.start(); 
+                        gsap.from(".reveal-up", { y: 60, opacity: 0, duration: 1.2, stagger: 0.1, ease: "power4.out" });
+                    }});
                 }, 400);
             }
         }
@@ -529,43 +487,36 @@
         const cmdList = document.getElementById('cmd-list');
 
         const commands = [
-            { title: "Jump to /home", action: () => lenis.scrollTo('#home', {offset:-100}) },
-            { title: "Jump to /about", action: () => lenis.scrollTo('#about', {offset:-100}) },
-            { title: "Jump to /tech-stack", action: () => lenis.scrollTo('#stack', {offset:-100}) },
-            { title: "Jump to /vibe", action: () => lenis.scrollTo('#vibe', {offset:-100}) },
-            { title: "Jump to /contact", action: () => lenis.scrollTo('#contact', {offset:-100}) },
+            { title: "Jump to /home", action: () => lenis.scrollTo('#home') },
+            { title: "Jump to /about", action: () => lenis.scrollTo('#about') },
+            { title: "Jump to /tech-stack", action: () => lenis.scrollTo('#stack') },
+            { title: "Jump to /vibe", action: () => lenis.scrollTo('#vibe') },
+            { title: "Jump to /contact", action: () => lenis.scrollTo('#contact') },
             { title: "System: Toggle X-Ray Lens", action: () => document.getElementById('debug-toggle')?.click() },
-            { title: "System: Toggle Audio Engine", action: () => document.getElementById('audio-toggle')?.click() },
             { title: "Action: Copy Email", action: () => document.getElementById('copy-email-btn')?.click() }
         ];
 
         function renderCmd(filter = "") {
             if(!cmdList) return;
             cmdList.innerHTML = "";
-            const filtered = commands.filter(c => c.title.toLowerCase().includes(filter.toLowerCase()));
-            filtered.forEach((cmd, i) => {
+            commands.filter(c => c.title.toLowerCase().includes(filter.toLowerCase())).forEach((cmd, i) => {
                 const el = document.createElement('div');
-                el.className = `p-3 rounded cursor-pointer transition-colors flex justify-between items-center mb-1 ${i===0?'bg-white/10 text-white border border-white/20':'hover:bg-white/5 border border-transparent'}`;
+                el.className = `p-3 rounded cursor-pointer transition-colors flex justify-between items-center mb-1 ${i===0?'bg-white/10 text-white border border-white/20':'hover:bg-white/5'}`;
                 el.innerHTML = `<span>${cmd.title}</span> <span class="text-white/20 text-[10px]">⏎</span>`;
                 el.onclick = () => { cmd.action(); closeCmd(); };
-                el.onmouseenter = () => { playHoverSound(1000); document.querySelector('.cursor-ring')?.classList.add('active'); };
-                el.onmouseleave = () => document.querySelector('.cursor-ring')?.classList.remove('active');
                 cmdList.appendChild(el);
             });
         }
 
         function openCmd() {
-            if(!cmdPalette) return;
             cmdPalette.classList.remove('hidden');
             gsap.to(cmdPalette, { opacity: 1, duration: 0.2 });
             gsap.to(cmdModal, { scale: 1, duration: 0.3, ease: "back.out(1.5)" });
             document.body.style.overflow = 'hidden';
             setTimeout(() => { if(cmdInput) cmdInput.focus(); renderCmd(); }, 100);
-            playHoverSound(400);
         }
 
         function closeCmd() {
-            if(!cmdPalette) return;
             gsap.to(cmdModal, { scale: 0.95, duration: 0.2 });
             gsap.to(cmdPalette, { opacity: 0, duration: 0.2, onComplete: () => {
                 cmdPalette.classList.add('hidden');
@@ -575,38 +526,30 @@
         }
 
         window.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                if(cmdPalette && cmdPalette.classList.contains('hidden')) openCmd(); else closeCmd();
-            }
-            if (e.key === 'Escape' && cmdPalette && !cmdPalette.classList.contains('hidden')) closeCmd();
-            if (e.key === 'Enter' && cmdPalette && !cmdPalette.classList.contains('hidden')) {
-                const firstCmd = cmdList?.firstElementChild;
-                if(firstCmd) firstCmd.click();
-            }
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); if(cmdPalette.classList.contains('hidden')) openCmd(); else closeCmd(); }
+            if (e.key === 'Escape' && !cmdPalette.classList.contains('hidden')) closeCmd();
         });
         if(cmdInput) cmdInput.addEventListener('input', (e) => renderCmd(e.target.value));
-        if(cmdPalette) cmdPalette.addEventListener('click', (e) => { if(e.target === cmdPalette) closeCmd(); });
 
         // --- 6. INTERACTIONS ---
-        const debugBtn = document.getElementById('debug-toggle');
-        if(debugBtn) {
-            debugBtn.onclick = (e) => {
-                document.body.classList.toggle('debug-mode');
-                e.currentTarget.classList.toggle('bg-volt');
-                e.currentTarget.classList.toggle('text-dark');
-                playHoverSound(300);
-            };
-        }
+        document.getElementById('debug-toggle').onclick = (e) => {
+            document.body.classList.toggle('debug-mode');
+            e.currentTarget.classList.toggle('bg-volt');
+            e.currentTarget.classList.toggle('text-dark');
+            playHoverSound(300);
+        };
 
-        // SMOOTH SCROLL HANDLER
-        document.querySelectorAll('nav a.nav-link, .mobile-link').forEach(link => {
+        // NAVIGATION (SMOOTH SCROLL + MOBILE AUTO-CLOSE)
+        document.querySelectorAll('.nav-link, .mobile-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = link.getAttribute('href');
                 const targetElement = document.querySelector(targetId);
                 if (targetElement) {
-                    lenis.scrollTo(targetElement, { offset: -100, duration: 1.5, easing: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t) });
+                    lenis.scrollTo(targetElement, { 
+                        duration: 1.5, 
+                        easing: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t) 
+                    });
                     const mMenu = document.getElementById('mobile-menu');
                     if (mMenu?.classList.contains('open')) {
                         mMenu.classList.remove('open');
@@ -617,148 +560,45 @@
             });
         });
 
-        // Copy Email Logic
-        function copyToClipboard() {
-            const el = document.createElement('textarea'); 
-            el.value = "rithikur@gmail.com"; 
-            document.body.appendChild(el); 
-            el.select(); document.execCommand('copy'); document.body.removeChild(el);
-            const txt = document.getElementById('email-text');
-            if(txt) {
-                const orig = txt.textContent; 
-                txt.textContent = "COPIED!"; 
-                triggerHaptic(50);
-                setTimeout(() => { txt.textContent = orig; }, 2000);
-            }
-        }
-        const copyTrig = document.getElementById('copy-email-trigger');
-        const copyBtn = document.getElementById('copy-email-btn');
-        if(copyTrig) copyTrig.onclick = copyToClipboard;
-        if(copyBtn) copyBtn.onclick = (e) => { e.preventDefault(); copyToClipboard(); };
-
-        // Mouse Tracking
-        const mouseOrb = document.getElementById('mouse-orb');
-        window.onmousemove = (e) => {
-            const { clientX, clientY } = e;
-            document.documentElement.style.setProperty('--mouse-x', `${(clientX/window.innerWidth)*100}%`);
-            document.documentElement.style.setProperty('--mouse-y', `${(clientY/window.innerHeight)*100}%`);
-            
-            if(window.innerWidth > 768) {
-                gsap.to(".cursor-dot", { x: clientX, y: clientY, duration: 0 });
-                gsap.to(".cursor-ring", { x: clientX, y: clientY, duration: 0.15 });
-                if(mouseOrb) gsap.to(mouseOrb, { x: clientX - 100, y: clientY - 100, opacity: 1, duration: 1 });
-
-                const chars = document.querySelectorAll('#magnetic-text span');
-                chars.forEach(char => {
-                    if(!char.innerText.trim()) return;
-                    const rect = char.getBoundingClientRect();
-                    const bX = rect.left + rect.width / 2;
-                    const bY = rect.top + rect.height / 2;
-                    const dist = Math.hypot(clientX - bX, clientY - bY);
-                    if (dist < 150) {
-                        gsap.to(char, { x: (clientX - bX) * 0.4, y: (clientY - bY) * 0.4, duration: 0.4 });
-                    } else {
-                        gsap.to(char, { x: 0, y: 0, duration: 0.4 });
-                    }
-                });
-            }
-        };
-
-        // Wire Animation & Surge
-        let wireTweens = [];
-        const animateDataPulses = () => {
-            wireTweens.forEach(t => t.kill());
-            wireTweens = [
-                gsap.fromTo("#wire-pulse-1", { strokeDashoffset: 1100 }, { strokeDashoffset: -1100, duration: 4, repeat: -1, ease: "none" }),
-                gsap.fromTo("#wire-pulse-2", { strokeDashoffset: -1100 }, { strokeDashoffset: 1100, duration: 5, repeat: -1, ease: "none", delay: 1 }),
-                gsap.fromTo("#wire-pulse-3", { strokeDashoffset: 1100 }, { strokeDashoffset: -1100, duration: 3, repeat: -1, ease: "none", delay: 0.5 })
-            ];
-        };
-
+        // Click Ripple & Wire Power Surge
         window.addEventListener('click', (e) => {
-            if(e.target.closest('button, a, .social-icon, .haptic-target, input')) return; 
-
+            if(e.target.closest('button, a, input, .mobile-link')) return; 
             const ripple = document.createElement('div');
             ripple.className = 'fixed rounded-full border-2 border-volt pointer-events-none z-[9999]';
-            ripple.style.left = e.clientX + 'px'; 
-            ripple.style.top = e.clientY + 'px'; 
-            ripple.style.transform = 'translate(-50%, -50%)';
+            ripple.style.left = e.clientX + 'px'; ripple.style.top = e.clientY + 'px'; ripple.style.transform = 'translate(-50%, -50%)';
             document.body.appendChild(ripple);
             gsap.fromTo(ripple, { width: 0, height: 0, opacity: 1 }, { width: 150, height: 150, opacity: 0, duration: 0.6, ease: "power2.out", onComplete: () => ripple.remove() });
-
+            
             const w1 = document.getElementById('wire-pulse-1');
             const w2 = document.getElementById('wire-pulse-2');
             const w3 = document.getElementById('wire-pulse-3');
             if(w1 && w2 && w3) {
-                wireTweens.forEach(t => t.kill());
-                gsap.fromTo([w1, w2, w3], 
-                    { strokeDashoffset: 1100, strokeWidth: 8, strokeOpacity: 1 },
-                    { strokeDashoffset: -1100, strokeWidth: 2, strokeOpacity: 0.2, duration: 3.5, ease: "power2.out", overwrite: true, onComplete: animateDataPulses }
-                );
-            }
-        });
-        animateDataPulses();
-
-        // Cursor feedback
-        document.querySelectorAll('a, button, .social-icon, .group, .bg-panel, .haptic-target, .nav-link').forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                document.querySelector('.cursor-ring')?.classList.add('active');
-                playHoverSound(800);
-            });
-            el.addEventListener('mouseleave', () => document.querySelector('.cursor-ring')?.classList.remove('active'));
-            el.addEventListener('click', () => triggerHaptic(20));
-        });
-
-        // --- 7. MARQUEE (GSAP QUAD-BUFFERED LOOP) ---
-        const marqueeL = gsap.fromTo("#marquee-l", { xPercent: 0 }, { xPercent: -25, duration: 15, repeat: -1, ease: "none", force3D: true });
-        const marqueeR = gsap.fromTo("#marquee-r", { xPercent: -25 }, { xPercent: 0, duration: 20, repeat: -1, ease: "none", force3D: true });
-
-        let isHoveringMarquee = false;
-        let targetTimeScale = 1;
-        let currentTimeScale = 1;
-
-        document.querySelectorAll('.marquee-track').forEach(track => {
-            track.addEventListener('mouseenter', () => {
-                isHoveringMarquee = true;
-                gsap.to([marqueeL, marqueeR], { timeScale: 0.15, duration: 0.5, overwrite: true });
-            });
-            track.addEventListener('mouseleave', () => {
-                isHoveringMarquee = false;
-                currentTimeScale = 0.15; 
-            });
-        });
-
-        gsap.ticker.add(() => {
-            if (!isHoveringMarquee) {
-                currentTimeScale += (targetTimeScale - currentTimeScale) * 0.1; 
-                marqueeL.timeScale(currentTimeScale);
-                marqueeR.timeScale(currentTimeScale);
-                targetTimeScale += (1 - targetTimeScale) * 0.05; 
+                gsap.fromTo([w1, w2, w3], { strokeDashoffset: 1100, strokeWidth: 8, strokeOpacity: 1 }, { strokeDashoffset: -1100, strokeWidth: 2, strokeOpacity: 0.2, duration: 3.5, ease: "power2.out" });
             }
         });
 
-        // --- 8. SCROLL ENGINE ---
-        const skewKinetic = gsap.quickTo("#kinetic-section", "skewY", { duration: 0.5, ease: "power2.out" });
-        const updateProgressBar = gsap.quickTo("#progress-bar", "height", { duration: 0.1, ease: "none" });
+        // Custom Mouse Tracker
+        window.onmousemove = (e) => {
+            const { clientX, clientY } = e;
+            document.documentElement.style.setProperty('--mouse-x', `${(clientX/window.innerWidth)*100}%`);
+            document.documentElement.style.setProperty('--mouse-y', `${(clientY/window.innerHeight)*100}%`);
+            if(window.innerWidth > 768) {
+                gsap.to(".cursor-dot", { x: clientX, y: clientY, duration: 0 });
+                gsap.to(".cursor-ring", { x: clientX, y: clientY, duration: 0.15 });
+            }
+        };
+
+        // 7. MARQUEE & SCROLL ENGINE LINKAGES
+        const marqueeL = gsap.fromTo("#marquee-l", { xPercent: 0 }, { xPercent: -25, duration: 15, repeat: -1, ease: "none" });
+        const marqueeR = gsap.fromTo("#marquee-r", { xPercent: -25 }, { xPercent: 0, duration: 20, repeat: -1, ease: "none" });
 
         lenis.on('scroll', ({ scroll, limit, velocity }) => {
             const v = Math.abs(velocity);
-            
-            if(soundEnabled && scrollGain && scrollOsc && audioCtx) {
+            if(soundEnabled && scrollGain) {
                 scrollOsc.frequency.setTargetAtTime(40 + (v * 0.5), audioCtx.currentTime, 0.1);
                 scrollGain.gain.setTargetAtTime(Math.min(v * 0.002, 0.05), audioCtx.currentTime, 0.1); 
             }
-
-            if (!isHoveringMarquee) {
-                targetTimeScale = 1 + Math.min(v * 0.015, 3); 
-            }
-
-            if (document.getElementById('kinetic-section')) {
-                skewKinetic(Math.min(Math.max(velocity * 0.03, -3), 3));
-            }
-
-            const sp = document.getElementById('scroll-percent');
-            if(sp) sp.innerText = `${Math.round((scroll/limit)*100)}% SCROLLED`;
+            gsap.to([marqueeL, marqueeR], { timeScale: 1 + Math.min(v * 0.02, 4), duration: 0.2, overwrite: "auto" });
             
             const scrollPos = window.scrollY + 200;
             const sections = ['home', 'about', 'stack', 'vibe', 'contact'];
@@ -771,10 +611,31 @@
                     if(label) label.textContent = id.charAt(0).toUpperCase() + id.slice(1);
                 }
             });
-            updateProgressBar(`${(scroll/limit)*100}%`);
+            const pb = document.getElementById('progress-bar');
+            if(pb) pb.style.height = `${(scroll/limit)*100}%`;
+            const sp = document.getElementById('scroll-percent');
+            if(sp) sp.innerText = `${Math.round((scroll/limit)*100)}% SCROLLED`;
         });
 
-        // --- 9. TILT CARDS ---
+        // 8. FOOTER NAME PARALLAX
+        gsap.fromTo("#parallax-name", 
+            { xPercent: 15 }, 
+            { xPercent: -35, ease: "none", scrollTrigger: { trigger: "#contact", start: "top bottom", end: "bottom bottom", scrub: 1.5 } }
+        );
+
+        // 9. CURSOR EXPANSION HOVERS
+        document.querySelectorAll('a, button, .group, .haptic-target').forEach(el => {
+            el.addEventListener('mouseenter', () => { 
+                if(window.innerWidth > 768) document.querySelector('.cursor-ring')?.classList.add('active'); 
+                playHoverSound(800); 
+            });
+            el.addEventListener('mouseleave', () => {
+                if(window.innerWidth > 768) document.querySelector('.cursor-ring')?.classList.remove('active');
+            });
+            el.addEventListener('click', () => triggerHaptic(20));
+        });
+
+        // Tilt Cards
         document.querySelectorAll('.tilt-card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
                 if(window.innerWidth <= 768) return;
@@ -784,47 +645,41 @@
             card.addEventListener('mouseleave', () => gsap.to(card, { rotateX: 0, rotateY: 0, duration: 0.6, ease: "power3.out" }));
         });
 
-        // --- 10. FOOTER NAME PARALLAX ---
-        gsap.fromTo("#parallax-name", 
-            { xPercent: 15 }, 
-            { xPercent: -35, 
-              ease: "none",
-              scrollTrigger: {
-                  trigger: "#contact", 
-                  start: "top bottom",
-                  end: "bottom bottom",
-                  scrub: 1.5
-              }
-            }
-        );
+        // Copy Email Logic
+        function copyToClipboard() {
+            const el = document.createElement('textarea'); el.value = "rithikur@gmail.com"; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            const txt = document.getElementById('email-text');
+            if(txt) { const orig = txt.textContent; txt.textContent = "COPIED!"; triggerHaptic(50); setTimeout(() => { txt.textContent = orig; }, 2000); }
+        }
+        document.getElementById('copy-email-trigger').onclick = copyToClipboard;
+        document.getElementById('copy-email-btn').onclick = (e) => { e.preventDefault(); copyToClipboard(); };
 
-        // --- 11. TERMINAL ---
-        const terminalOutput = ["> Initializing system.core", "> Academic Foundation... OK", "> IT Undergraduate Status... ACTIVE", "> Interest: Full Stack Development", "> Objective: Award-winning digital products."];
+        // Terminal Simulator
+        const terminalOutput = ["> system.init", "> academy.foundation... OK", "> IT_UNDERGRAD... ACTIVE", "> full_stack... DETECTED"];
         let t_i = 0; let lineIdx = 0;
         function typeLine() {
             const term = document.getElementById('terminal-text');
             if (!term) return;
             if (lineIdx < terminalOutput.length) {
                 const line = terminalOutput[lineIdx];
-                if (t_i < line.length) {
-                    term.innerHTML += line.charAt(t_i); t_i++; setTimeout(typeLine, 20);
-                } else { term.innerHTML += "<br>"; t_i = 0; lineIdx++; setTimeout(typeLine, 400); }
+                if (t_i < line.length) { term.innerHTML += line.charAt(t_i); t_i++; setTimeout(typeLine, 20); } 
+                else { term.innerHTML += "<br>"; t_i = 0; lineIdx++; setTimeout(typeLine, 400); }
             }
         }
         ScrollTrigger.create({ trigger: "#about", start: "top 80%", onEnter: () => typeLine(), once: true });
         
         setInterval(() => { 
-            const lt = document.getElementById('live-time');
-            if(lt) lt.textContent = new Date().toLocaleTimeString('en-IN', { hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit' }); 
+            const ltf = document.getElementById('live-time-footer'); 
+            const timeStr = new Date().toLocaleTimeString('en-IN', { hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit' }); 
+            if(ltf) ltf.textContent = timeStr; 
         }, 1000);
 
-        // --- 12. MOBILE MENU ---
+        // Mobile Menu Toggle Listeners
         const mToggle = document.getElementById('menu-toggle');
         const mClose = document.getElementById('menu-close');
         const mMenu = document.getElementById('mobile-menu');
         if(mToggle) mToggle.onclick = () => { mMenu.classList.add('open'); document.body.style.overflow = 'hidden'; triggerHaptic(); };
         if(mClose) mClose.onclick = () => { mMenu.classList.remove('open'); document.body.style.overflow = ''; triggerHaptic(); };
-
     </script>
 </body>
 </html>
